@@ -32,7 +32,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pytest-cov black flake8 mypy
+        pip install pytest pytest-cov black flake8 mypy detect-secrets
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
 
@@ -46,6 +46,10 @@ jobs:
 
     - name: Type checking with mypy
       run: mypy code/ --ignore-missing-imports
+
+    - name: Scan for secrets
+      run: |
+        detect-secrets scan --baseline .secrets.baseline --all-files
 
     - name: Test with pytest
       run: |
