@@ -40,4 +40,3 @@ def test_mem0_setup():
 
 if __name__ == "__main__":
     test_mem0_setup()
-EOF < /dev/null
