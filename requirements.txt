@@ -2,7 +2,8 @@ mem0ai==0.1.114
 openai==1.95.1
 qdrant-client==1.14.3
 pydantic==2.11.7
-numpy==2.3.1
+numpy>=1.24.0,<2.3.0;python_version<"3.11"
+numpy>=2.3.1;python_version>="3.11"
 loguru==0.7.3
 python-dateutil==2.9.0
 PyYAML==6.0.2
