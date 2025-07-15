@@ -51,8 +51,19 @@ jobs:
         
     - name: Create temporary .env file
       run: |
-        echo "LINEAR_API_KEY=${{ secrets.LINEAR_API_KEY }}" > config/secrets/.env
-        echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" >> config/secrets/.env
+        mkdir -p config/secrets
+        if [ -n "${{ secrets.LINEAR_API_KEY }}" ]; then
+          echo "LINEAR_API_KEY=${{ secrets.LINEAR_API_KEY }}" > config/secrets/.env
+        else
+          echo "LINEAR_API_KEY=" > config/secrets/.env
+          echo "Warning: LINEAR_API_KEY secret not configured"
+        fi
+        if [ -n "${{ secrets.OPENROUTER_API_KEY }}" ]; then
+          echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" >> config/secrets/.env
+        else
+          echo "OPENROUTER_API_KEY=" >> config/secrets/.env
+          echo "Warning: OPENROUTER_API_KEY secret not configured"
+        fi
         
     - name: Run Linear automation
       run: |
