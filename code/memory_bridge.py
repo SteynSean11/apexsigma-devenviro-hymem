@@ -22,7 +22,7 @@ class MemoryBridge:
     
     def __init__(self):
         self.qdrant_url = "http://localhost:6333"
-        self.mem0_url = "http://localhost:8001"
+        self.mem0_url = "http://localhost:8000"
         self.bridge_config = self.load_bridge_config()
         self.services_healthy = False
         

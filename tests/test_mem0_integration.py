@@ -21,7 +21,7 @@ class TestMem0Integration:
             pytest.skip("mem0 not installed")
     
     @pytest.mark.integration
-    @patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"})
+    @patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key"})
     def test_mem0_setup_with_api_key(self):
         """Test mem0 setup with API key present"""
         with patch('mem0.Memory') as mock_memory:

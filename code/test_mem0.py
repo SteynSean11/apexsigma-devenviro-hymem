@@ -43,13 +43,13 @@ def test_mem0_setup():
     # Test 3: Direct SDK configuration (if API key available)
     try:
         # Check for OpenAI API key
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
         if not api_key:
-            print("WARNING: OPENAI_API_KEY not set")
+            print("WARNING: OPENROUTER_API_KEY not set")
             print("   Mem0 Service running in limited mode")
-            print("   Set OPENAI_API_KEY to enable full memory operations")
+            print("   Set OPENROUTER_API_KEY to enable full memory operations")
         else:
-            print("SUCCESS: OPENAI_API_KEY configured")
+            print("SUCCESS: OPENROUTER_API_KEY configured")
             
             # Test direct memory configuration
             config = {
@@ -66,7 +66,7 @@ def test_mem0_setup():
 
     except Exception as e:
         print(f"ERROR: Mem0 SDK configuration failed: {e}")
-        print("   Service API is available, but SDK initialization needs OpenAI API key")
+        print("   Service API is available, but SDK initialization needs OPENROUTER_API_KEY")
         return True  # Service is still working
 
 
