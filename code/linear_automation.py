@@ -12,7 +12,12 @@ from typing import Dict, List, Any, Optional
 from pathlib import Path
 from dotenv import load_dotenv
 import asyncio
+import logging
 from memory_bridge import bridge
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class LinearAutomation:
     """Automated Linear project tracking and updates"""
@@ -20,24 +25,39 @@ class LinearAutomation:
     def __init__(self):
         self.project_root = Path.cwd()
         self.load_environment()
-        self.headers = {
-            "Authorization": self.linear_api_key,
-            "Content-Type": "application/json"
-        }
+        
+        if self.linear_api_key:
+            self.headers = {
+                "Authorization": self.linear_api_key,
+                "Content-Type": "application/json"
+            }
+        else:
+            self.headers = {"Content-Type": "application/json"}
         self.team_id = None
         self.project_id = None
         
     def load_environment(self):
         """Load environment variables"""
         env_file = self.project_root / "config" / "secrets" / ".env"
-        load_dotenv(env_file)
+        
+        # Try to load from .env file if it exists
+        if env_file.exists():
+            load_dotenv(env_file)
+        
+        # Get API key from environment (could be from .env or CI environment)
         self.linear_api_key = os.getenv("LINEAR_API_KEY")
         
         if not self.linear_api_key:
-            raise ValueError("LINEAR_API_KEY not found in environment")
+            logger.warning("LINEAR_API_KEY not found in environment - Linear features will be disabled")
+            self.linear_api_key = None
     
     def graphql_request(self, query: str, variables: Dict = None) -> Dict:
         """Make GraphQL request to Linear API"""
+        
+        if not self.linear_api_key:
+            logger.warning("Linear API key not available - skipping GraphQL request")
+            return {"errors": [{"message": "Linear API key not configured"}]}
+        
         try:
             response = requests.post(
                 "https://api.linear.app/graphql",
@@ -48,7 +68,7 @@ class LinearAutomation:
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            print(f"GraphQL request failed: {e}")
+            logger.error(f"GraphQL request failed: {e}")
             return {"errors": [{"message": str(e)}]}
     
     def get_team_info(self) -> Dict:
@@ -396,6 +416,12 @@ async def main():
     """Test Linear automation"""
     print("APEXSIGMA LINEAR AUTOMATION")
     print("=" * 60)
+    
+    # Check if Linear API is available
+    if not linear_automation.linear_api_key:
+        print("Linear API key not configured - running in simulation mode")
+        print("To enable Linear integration, configure LINEAR_API_KEY in environment")
+        return
     
     # Initialize memory bridge
     await bridge.initialize_bridge()
