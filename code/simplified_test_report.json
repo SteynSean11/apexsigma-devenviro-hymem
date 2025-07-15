@@ -1,26 +1,26 @@
 {
   "test_summary": {
     "status": "SUCCESS",
-    "duration_seconds": 1.277464,
+    "duration_seconds": 1.264883,
     "tests_passed": 5,
     "errors": 0
   },
   "performance_metrics": {
     "search_Python_async_programming": {
-      "time_ms": 25.70700000069337,
+      "time_ms": 12.560199997096788,
       "results_count": 0
     },
     "search_database_optimization": {
-      "time_ms": 15.525199996773154,
+      "time_ms": 15.76799999747891,
       "results_count": 0
     },
     "search_error_handling_microservices": {
-      "time_ms": 17.910800001118332,
+      "time_ms": 16.548699997656513,
       "results_count": 0
     },
-    "ai_avg_ms": 16.4352499989036,
-    "memory_avg_ms": 16.6775299992878,
-    "total_avg_ms": 33.1127799981914
+    "ai_avg_ms": 16.662960001121974,
+    "memory_avg_ms": 16.863549999834504,
+    "total_avg_ms": 33.52651000095648
   },
   "tests_passed": [
     "memory_initialization",
@@ -30,5 +30,5 @@
     "total_performance_target"
   ],
   "errors": [],
-  "timestamp": "2025-07-16T00:05:54.404868"
+  "timestamp": "2025-07-16T00:16:12.100305"
 }
