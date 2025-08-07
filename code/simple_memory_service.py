@@ -111,15 +111,14 @@ def search_memories_in_db(query: str, user_id: str, limit: int) -> List[Dict[str
     conn = sqlite3.connect(str(DB_PATH))
     cursor = conn.cursor()
     
-    # Simple text search
+    # Simple text search - ignore user_id for broader search in this simple service
     cursor.execute('''
         SELECT id, message, user_id, metadata, created_at
         FROM memories
         WHERE (message LIKE ? OR metadata LIKE ?)
-        AND (user_id = ? OR user_id = 'system')
         ORDER BY created_at DESC
         LIMIT ?
-    ''', (f'%{query}%', f'%{query}%', user_id, limit))
+    ''', (f'%{query}%', f'%{query}%', limit))
     
     results = []
     for row in cursor.fetchall():

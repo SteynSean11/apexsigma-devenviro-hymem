@@ -21,7 +21,6 @@ class MemoryBridge:
     """Bridge connecting all memory services for cognitive orchestration"""
     
     def __init__(self):
-        self.qdrant_url = "http://localhost:6333"
         self.mem0_url = "http://localhost:8000"
         self.bridge_config = self.load_bridge_config()
         self.services_healthy = False
@@ -29,13 +28,6 @@ class MemoryBridge:
     def load_bridge_config(self) -> Dict:
         """Load memory bridge configuration"""
         return {
-            "collections": {
-                "project_memory": "apexsigma-memory",
-                "code_patterns": "code-patterns", 
-                "decisions": "architecture-decisions",
-                "context": "development-context",
-                "cross_project": "cross-project-knowledge"
-            },
             "sync_interval": 300,  # 5 minutes
             "memory_retention": 30,  # 30 days
             "cross_project_sharing": True,
@@ -50,9 +42,6 @@ class MemoryBridge:
         # Verify service connections
         await self.verify_connections()
         
-        # Setup memory collections
-        await self.setup_collections()
-        
         # Initialize cross-project sharing
         await self.setup_cross_project_sharing()
         
@@ -66,16 +55,6 @@ class MemoryBridge:
     async def verify_connections(self):
         """Verify all memory services are accessible"""
         logger.info("Verifying service connections...")
-        
-        # Check Qdrant
-        try:
-            response = requests.get(f"{self.qdrant_url}/", timeout=5)
-            if response.status_code == 200:
-                logger.info("✓ Qdrant service accessible")
-            else:
-                logger.warning(f"Qdrant responded with status: {response.status_code}")
-        except Exception as e:
-            logger.error(f"Qdrant connection failed: {e}")
             
         # Check Mem0
         try:
@@ -86,34 +65,6 @@ class MemoryBridge:
                 logger.warning(f"Mem0 responded with status: {response.status_code}")
         except Exception as e:
             logger.error(f"Mem0 connection failed: {e}")
-    
-    async def setup_collections(self):
-        """Setup required Qdrant collections"""
-        logger.info("Setting up memory collections...")
-        
-        for collection_name, collection_id in self.bridge_config["collections"].items():
-            try:
-                # Create collection in Qdrant
-                collection_config = {
-                    "vectors": {
-                        "size": 384,  # FastEmbed default size
-                        "distance": "Cosine"
-                    }
-                }
-                
-                response = requests.put(
-                    f"{self.qdrant_url}/collections/{collection_id}",
-                    json=collection_config,
-                    timeout=10
-                )
-                
-                if response.status_code in [200, 409]:  # 409 = already exists
-                    logger.info(f"✓ Collection ready: {collection_name}")
-                else:
-                    logger.warning(f"Collection setup issue for {collection_name}: {response.status_code}")
-                    
-            except Exception as e:
-                logger.error(f"Failed to setup collection {collection_name}: {e}")
     
     async def setup_cross_project_sharing(self):
         """Setup cross-project memory sharing"""
@@ -254,6 +205,7 @@ class MemoryBridge:
     async def get_cognitive_suggestions(self, current_context: Dict[str, Any]) -> List[Dict]:
         """Get AI-powered suggestions based on stored patterns and context"""
         try:
+            logger.info("ENTERING GET_COGNITIVE_SUGGESTIONS")
             # Build query from current context
             query_parts = []
             if current_context.get("task"):
@@ -265,21 +217,30 @@ class MemoryBridge:
                 
             query = " ".join(query_parts) or "development suggestions"
             
-            # Retrieve relevant patterns
-            relevant_memories = await self.retrieve_relevant_context(query, limit=15)
-            
-            # Filter for high-confidence patterns
+            # Retrieve all learned patterns and filter in Python
+            relevant_memories = await self.retrieve_relevant_context("learned_pattern", limit=100)
+            logger.info(f"Initial patterns found: {len(relevant_memories)}")
+            logger.info(f"Query parts: {query_parts}")
+
+            if query_parts:
+                relevant_memories_after_filter = [
+                    p for p in relevant_memories
+                    if any(qp in p.get("message", "") for qp in query_parts)
+                ]
+                logger.info(f"Patterns after filter: {len(relevant_memories_after_filter)}")
+                relevant_memories = relevant_memories_after_filter
+
             patterns = [
-                m for m in relevant_memories 
+                m for m in relevant_memories
                 if m.get("metadata", {}).get("memory_type") == "learned_pattern"
                 and m.get("metadata", {}).get("learning_confidence", 0) >= self.bridge_config["learning_threshold"]
             ]
-            
-            # Generate suggestions
+            logger.info(f"High confidence patterns: {len(patterns)}")
+
             suggestions = []
             for pattern in patterns[:5]:  # Top 5 patterns
                 pattern_data = pattern.get("metadata", {}).get("pattern_data", {})
-                
+
                 suggestion = {
                     "type": pattern_data.get("pattern_type", "general"),
                     "suggestion": pattern_data.get("suggestion", "Apply learned pattern"),
@@ -288,7 +249,7 @@ class MemoryBridge:
                     "applications": pattern_data.get("successful_applications", [])
                 }
                 suggestions.append(suggestion)
-            
+
             logger.info(f"✓ Generated {len(suggestions)} cognitive suggestions")
             return suggestions
             
@@ -341,9 +302,7 @@ class MemoryBridge:
         """Get current bridge status and health"""
         return {
             "bridge_healthy": self.services_healthy,
-            "qdrant_url": self.qdrant_url,
             "mem0_url": self.mem0_url,
-            "collections": self.bridge_config["collections"],
             "cross_project_sharing": self.bridge_config["cross_project_sharing"],
             "learning_enabled": True,
             "timestamp": datetime.now().isoformat()
@@ -380,7 +339,7 @@ if __name__ == "__main__":
                 "description": "Memory bridge initialization and testing completed",
                 "developer": "sean",
                 "project": "apexsigma-devenviro", 
-                "components": ["memory_bridge", "qdrant", "mem0"],
+                "components": ["memory_bridge", "simple_memory_service"],
                 "status": "successful",
                 "lessons": ["Bridge architecture works", "Services integrate well"]
             }

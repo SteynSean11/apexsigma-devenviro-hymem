@@ -52,36 +52,29 @@ class SearchResponse(BaseModel):
 def initialize_memory():
     """Initialize Mem0 with Qdrant backend"""
     global memory_instance
-    
+
+    # Set a dummy API key if not present
+    if not os.getenv("OPENAI_API_KEY"):
+        os.environ["OPENAI_API_KEY"] = "dummy_key"
+
     try:
-        # Simple configuration using default embedder (no OpenAI required)
+        # Use in-memory Qdrant
         config = {
             "vector_store": {
                 "provider": "qdrant",
                 "config": {
-                    "host": os.getenv("QDRANT_HOST", "localhost"),
-                    "port": int(os.getenv("QDRANT_PORT", "6333")),
+                    "location": ":memory:",
                     "collection_name": "apexsigma-memory"
                 }
             }
         }
         
-        # Try to initialize with simplified config first
-        try:
-            memory_instance = Memory.from_config(config)
-            logger.info("✅ Mem0 initialized successfully with Qdrant backend")
-            return True
-        except Exception as config_error:
-            logger.warning(f"Config-based init failed: {config_error}")
-            
-            # Fallback: Try basic Memory initialization
-            memory_instance = Memory()
-            logger.info("✅ Mem0 initialized successfully with default configuration")
-            return True
+        memory_instance = Memory.from_config(config)
+        logger.info("✅ Mem0 initialized successfully with in-memory Qdrant backend")
+        return True
         
     except Exception as e:
         logger.error(f"❌ Failed to initialize Mem0: {e}")
-        # Set a dummy instance so service can still respond
         memory_instance = None
         return False
 
