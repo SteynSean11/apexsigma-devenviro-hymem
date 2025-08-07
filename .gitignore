@@ -56,10 +56,13 @@ coverage.xml
 docs/_build/
 .doctrees/
 .docstring_cache/
+docs/*_*.txt
+docs/[0-9]*_*.txt
 
 # Logs
 logs/
 *.log
+*.zip
 
 # OS
 .DS_Store
@@ -77,6 +80,10 @@ Thumbs.db
 config/secrets/
 *.key
 *.pem
+
+# Claude AI settings
+.claude/
+.claude/settings.local.json
 
 # Temporary files
 tmp/
